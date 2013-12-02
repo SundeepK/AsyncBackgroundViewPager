@@ -43,7 +43,7 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 	private ImageDecoder _imageDecoder;
 	private ImageRetriever _imageRetreiver;
 	private ImageWriter _imageWriter;
-	private static final String TAG = AsyncBackgroundViewPager.class.getName();
+//	private static final String TAG = AsyncBackgroundViewPager.class.getName();
 	private Rect _srcBounds = new Rect();
 	private MemoryCache<ImageKey, File> _diskCache;
     private Handler _handler ;
@@ -227,10 +227,7 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 	 */
 	private synchronized void startImageLoadTask(URI url_, int sampleSize_, 
 			boolean shouldFindOptimalSize_, ExecutorService executorService_, ImageLoadTaskCallback imageLoadTaskcallBack_){
-		
-		Log.v(TAG, "im in image loading with image loadng :" + _isLoadingImage);
-
-		
+	
 		if(_isLoadingImage){
 			return;
 		}
@@ -239,24 +236,15 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 				executorService_, imageLoadTaskcallBack_);
 
 		if(isValidDimensions() == false){
-			Log.v(TAG, "is not valid: " + _height);
 			return;
 		}
-		
-		Log.v(TAG, "is valid with width: " + _width);
-
-		
 		_isLoadingImage = true;
 
 		if (_currentImageTaskSettings._executorService != null) {
-			Log.v(TAG, "should be running task :" + _isLoadingImage);
-
 			Runnable imageRunnable = getImageLoadTask(url_, sampleSize_, shouldFindOptimalSize_);
 			 Future<?> future = executorService_.submit(imageRunnable);
 			 _currentImageTaskSettings._imageLoadTaskcallBack.onImageLoadStart(future);
 		} else {
-			Log.v(TAG, "should be running task :" + _isLoadingImage);
-
 			 Runnable imageRunnable = getImageLoadTask(url_, sampleSize_, shouldFindOptimalSize_);
 			 Thread t = new Thread(imageRunnable);
 			 t.start();
@@ -308,7 +296,6 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 					AsyncBackgroundViewPager.this.invalidate();
 				}
 			});
-		Log.v(TAG, "im on image load finish so I should be finished I am:" + _isLoadingImage);
 
 		if(!_currentImageTaskSettings.isDone){
 			startImageLoadTask(_currentImageTaskSettings);
@@ -318,7 +305,6 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 
 	@Override
 	public void onImageLoadFail(FailedTaskReason arg0, ImageSettings arg1) {
-		Log.v(TAG, "Image failed to load");
 			_isLoadingImage = false;
 	}
 	

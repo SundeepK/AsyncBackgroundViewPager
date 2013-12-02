@@ -14,10 +14,11 @@
     <Button
         android:id="@+id/buttonChangeImage"
         android:layout_width="fill_parent"
+        android:text="Change background"
         android:layout_height="wrap_content" />
 
     <com.sun.parallaxviewpage.core.AsyncBackgroundViewPager
-        android:id="@+id/sundeepsBar"
+        android:id="@+id/viewpager"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:background="#cc000000"

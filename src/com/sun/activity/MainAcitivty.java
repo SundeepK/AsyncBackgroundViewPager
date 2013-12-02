@@ -31,7 +31,7 @@ public class MainAcitivty extends  FragmentActivity implements android.app.Actio
 	    setContentView(R.layout.main);
 	    Button but = (Button) findViewById(R.id.buttonChangeImage);
 	    
-		_viewPage = (AsyncBackgroundViewPager) findViewById(R.id.sundeepsBar);
+		_viewPage = (AsyncBackgroundViewPager) findViewById(R.id.viewpager);
 		_viewPage.setAdapter(new TestAdapter(getSupportFragmentManager()));
 		_viewPage.setExternalStorageDir("/storage/sdcard0/Pictures/twitterFiltrr", 5);
 		final ExecutorService threadPool = Executors.newFixedThreadPool(2);
@@ -60,24 +60,12 @@ public class MainAcitivty extends  FragmentActivity implements android.app.Actio
 		});
 		
 		try {
-			
 			_viewPage.loadImage(
 					new URI("https://si0.twimg.com/profile_background_images/378800000112087628/3a432a79828de732b54781d288d1fc14.jpeg")
-					, 2, false, threadPool, new ImageLoadTaskCallback() {
-						
-						@Override
-						public void onImageLoadStart(final Future<?> future_) {
-
-						}
-					});
-		
- 
+					, 1, false);
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-
 		}
-
 	}
 
 	@Override

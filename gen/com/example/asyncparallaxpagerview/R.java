@@ -16,7 +16,7 @@ public final class R {
     public static final class id {
         public static final int buttonChangeImage=0x7f060000;
         public static final int pager_title_strip=0x7f060002;
-        public static final int sundeepsBar=0x7f060001;
+        public static final int viewpager=0x7f060001;
     }
     public static final class layout {
         public static final int main=0x7f030000;
