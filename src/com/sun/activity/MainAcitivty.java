@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 
 import com.example.asyncparallaxpagerview.R;
@@ -28,10 +30,35 @@ public class MainAcitivty extends  FragmentActivity implements android.app.Actio
 		super.onCreate(savedInstanceState);
 	    setContentView(R.layout.main);
 	    Button but = (Button) findViewById(R.id.buttonChangeImage);
+	    
 		_viewPage = (AsyncBackgroundViewPager) findViewById(R.id.sundeepsBar);
 		_viewPage.setAdapter(new TestAdapter(getSupportFragmentManager()));
 		_viewPage.setExternalStorageDir("/storage/sdcard0/Pictures/twitterFiltrr", 5);
-		ExecutorService threadPool = Executors.newFixedThreadPool(2);
+		final ExecutorService threadPool = Executors.newFixedThreadPool(2);
+		
+	    but.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				try {
+					_viewPage.loadImage(
+							new URI("http://newevolutiondesigns.com/images/freebies/hd-wallpaper-35.jpg")
+							, 2, false, threadPool, new ImageLoadTaskCallback() {
+								
+								@Override
+								public void onImageLoadStart(final Future<?> future_) {
+
+								}
+							});
+				
+		 
+				} catch (URISyntaxException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+
+				}
+			}
+		});
+		
 		try {
 			
 			_viewPage.loadImage(
@@ -50,7 +77,7 @@ public class MainAcitivty extends  FragmentActivity implements android.app.Actio
 			e.printStackTrace();
 
 		}
-				
+
 	}
 
 	@Override

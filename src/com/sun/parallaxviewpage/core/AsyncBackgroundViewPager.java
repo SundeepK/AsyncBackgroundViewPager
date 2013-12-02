@@ -49,14 +49,9 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
     private Handler _handler ;
     private int _height;
     private int _width;
-    private URI _currentUri;
-    private int _sampleSize;
-    private boolean _isLoadingImage =false;
-    private boolean _shouldFindOptimalSize;
     private String _imageStorageDir;
-    private ExecutorService _executorService;
-	private ImageLoadTaskCallback _imageLoadTaskcallBack;
-	private boolean _shouldClearCurrentBackgroundImage;
+	private boolean _isLoadingImage;
+	private ImageLoaderSettings _currentImageTaskSettings;
     
 	public AsyncBackgroundViewPager(Context context) {
 		this(context, null);
@@ -105,8 +100,10 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 		_width = MeasureSpec.getSize(widthMeasureSpec);
 		_height = MeasureSpec.getSize(heightMeasureSpec);
-		if(_currentUri != null && _sampleSize > 0){
-			startImageLoadTask(_currentUri, _sampleSize, _shouldFindOptimalSize, _executorService, _imageLoadTaskcallBack);
+		if(_currentImageTaskSettings._url != null && _currentImageTaskSettings._sampleSize > 0){
+			startImageLoadTask(_currentImageTaskSettings._url,  _currentImageTaskSettings._sampleSize,
+					_currentImageTaskSettings._shouldFindOptimalSize,
+					_currentImageTaskSettings._executorService, _currentImageTaskSettings._imageLoadTaskcallBack);
 		}
 	    this.setMeasuredDimension(_width/2, _height);
 		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -125,8 +122,10 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 	
 	@Override
 	protected void onLayout(boolean arg0, int arg1, int arg2, int arg3, int arg4) {
-		if(_currentUri != null && _sampleSize <= 0){
-			startImageLoadTask(_currentUri, _sampleSize, _shouldFindOptimalSize, _executorService, _imageLoadTaskcallBack);
+		if(_currentImageTaskSettings._url != null && _currentImageTaskSettings._sampleSize > 0){
+			startImageLoadTask(_currentImageTaskSettings._url,  _currentImageTaskSettings._sampleSize,
+					_currentImageTaskSettings._shouldFindOptimalSize,
+					_currentImageTaskSettings._executorService, _currentImageTaskSettings._imageLoadTaskcallBack);
 		}
 		super.onLayout(arg0, arg1, arg2, arg3, arg4);
 	}
@@ -167,6 +166,12 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 	 */
 	public void loadImage(URI url_, int sampleSize_, boolean shouldFindOptimalSize_){
 		startImageLoadTask( url_,  sampleSize_, shouldFindOptimalSize_, null, null);
+	}
+	
+	private void startImageLoadTask(
+			ImageLoaderSettings _imTask) {
+		startImageLoadTask(_imTask._url, _imTask._sampleSize, _imTask._shouldFindOptimalSize,
+				_imTask._executorService, _imTask._imageLoadTaskcallBack);
 	}
 	
 	
@@ -222,38 +227,50 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 	 */
 	private synchronized void startImageLoadTask(URI url_, int sampleSize_, 
 			boolean shouldFindOptimalSize_, ExecutorService executorService_, ImageLoadTaskCallback imageLoadTaskcallBack_){
-	
+		
+		Log.v(TAG, "im in image loading with image loadng :" + _isLoadingImage);
+
+		
 		if(_isLoadingImage){
 			return;
 		}
 		
-		_executorService = executorService_;
-		_imageLoadTaskcallBack = imageLoadTaskcallBack_ ;
+		_currentImageTaskSettings = getCurrentImageLoaderSettings(url_,sampleSize_, shouldFindOptimalSize_, 
+				executorService_, imageLoadTaskcallBack_);
 
-		if(!isValidDimensions(url_,sampleSize_ , shouldFindOptimalSize_)){
+		if(isValidDimensions() == false){
+			Log.v(TAG, "is not valid: " + _height);
 			return;
 		}
+		
+		Log.v(TAG, "is valid with width: " + _width);
+
+		
 		_isLoadingImage = true;
 
-		if (_executorService != null) {
+		if (_currentImageTaskSettings._executorService != null) {
+			Log.v(TAG, "should be running task :" + _isLoadingImage);
+
 			Runnable imageRunnable = getImageLoadTask(url_, sampleSize_, shouldFindOptimalSize_);
 			 Future<?> future = executorService_.submit(imageRunnable);
-			_imageLoadTaskcallBack.onImageLoadStart(future);
+			 _currentImageTaskSettings._imageLoadTaskcallBack.onImageLoadStart(future);
 		} else {
+			Log.v(TAG, "should be running task :" + _isLoadingImage);
+
 			 Runnable imageRunnable = getImageLoadTask(url_, sampleSize_, shouldFindOptimalSize_);
 			 Thread t = new Thread(imageRunnable);
 			 t.start();
 		}
+		_currentImageTaskSettings.isDone = true;
 	}
 	
-	private boolean isValidDimensions(URI url_, int sampleSize_, boolean shouldFindOptimalSize_){
-		if (_width <= 0 && _height <= 0) {
-			_shouldFindOptimalSize = shouldFindOptimalSize_;
-			_currentUri = url_;
-			_sampleSize = sampleSize_;
-			return false;
-		}
-		return true;
+	private boolean isValidDimensions(){
+		return (_width >= 0 && _height >= 0);
+	}
+	
+	private ImageLoaderSettings getCurrentImageLoaderSettings(URI url_, int sampleSize_, 
+			boolean shouldFindOptimalSize_, ExecutorService executorService_, ImageLoadTaskCallback imageLoadTaskcallBack_){
+		return new 	ImageLoaderSettings(url_,sampleSize_, shouldFindOptimalSize_, executorService_,imageLoadTaskcallBack_ );
 	}
 	
 	private Runnable getImageLoadTask(URI url_, int sampleSize_, boolean shouldFindOptimalSize_){
@@ -291,12 +308,41 @@ public class AsyncBackgroundViewPager extends ViewPager implements OnImageLoad, 
 					AsyncBackgroundViewPager.this.invalidate();
 				}
 			});
+		Log.v(TAG, "im on image load finish so I should be finished I am:" + _isLoadingImage);
+
+		if(!_currentImageTaskSettings.isDone){
+			startImageLoadTask(_currentImageTaskSettings);
+		}
 	}
+
 
 	@Override
 	public void onImageLoadFail(FailedTaskReason arg0, ImageSettings arg1) {
 		Log.v(TAG, "Image failed to load");
 			_isLoadingImage = false;
+	}
+	
+	private class ImageLoaderSettings{
+		
+		private	URI _url;
+		private int _sampleSize; 
+		private boolean _shouldFindOptimalSize;
+		private ExecutorService _executorService;
+		private ImageLoadTaskCallback _imageLoadTaskcallBack;
+		private boolean isDone= false;
+		
+		private ImageLoaderSettings(URI url_, int sampleSize_,
+				boolean shouldFindOptimalSize_,
+				ExecutorService executorService_,
+				ImageLoadTaskCallback imageLoadTaskcallBack_) {
+			_url = url_;
+			_sampleSize = sampleSize_;
+			_shouldFindOptimalSize = shouldFindOptimalSize_;
+			_executorService = executorService_;
+			_imageLoadTaskcallBack = imageLoadTaskcallBack_;
+		}
+				
+		
 	}
 
 }
