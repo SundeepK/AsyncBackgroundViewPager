@@ -55,11 +55,9 @@ Simply define a AsyncBackgroundViewPager:
 		_viewPage = (AsyncBackgroundViewPager) findViewById(R.id.viewPager);
 		_viewPage.setAdapter(new TestAdapter(getSupportFragmentManager()));
 		_viewPage.setExternalStorageDir("/storage/sdcard0/Pictures/test", 5);
-		final ExecutorService threadPool = Executors.newFixedThreadPool(2);
-		
 				try {
 			_viewPage.loadImage(
-					new URI("https://si0.twimg.com/profile_background_images/378800000112087628/3a432a79828de732b54781d288d1fc14.jpeg")
+					new URI("someurlToAImage.com/image.jpeg")
 					, 1, false);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
