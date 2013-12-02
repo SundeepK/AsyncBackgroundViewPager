@@ -24,7 +24,7 @@ Simply define a AsyncBackgroundViewPager:
     tools:context=".MainActivity" >
 
     <com.sun.parallaxviewpage.core.AsyncBackgroundViewPager
-        android:id="@+id/sundeepsBar"
+        android:id="@+id/viewPager"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:background="#cc000000"
@@ -44,5 +44,27 @@ Simply define a AsyncBackgroundViewPager:
 </LinearLayout>
 
   ```
+  
+ ``` java
+@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+	    setContentView(R.layout.main);
+	    Button but = (Button) findViewById(R.id.buttonChangeImage);
+	    
+		_viewPage = (AsyncBackgroundViewPager) findViewById(R.id.viewPager);
+		_viewPage.setAdapter(new TestAdapter(getSupportFragmentManager()));
+		_viewPage.setExternalStorageDir("/storage/sdcard0/Pictures/test", 5);
+		final ExecutorService threadPool = Executors.newFixedThreadPool(2);
+		
+				try {
+			_viewPage.loadImage(
+					new URI("https://si0.twimg.com/profile_background_images/378800000112087628/3a432a79828de732b54781d288d1fc14.jpeg")
+					, 1, false);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+	}
+```
 
 
